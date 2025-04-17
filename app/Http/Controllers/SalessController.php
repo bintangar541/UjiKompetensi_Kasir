@@ -77,126 +77,106 @@ class SalessController extends Controller
     }
 
     public function createsales(Request $request)
-    {
-        $request->validate([
-            'total_pay' => 'required',
-        ], [
-            'total_pay.required' => 'Berapa jumlah uang yang dibayarkan?',
-        ]);
+{
+    $request->validate([
+        'total_pay' => 'required',
+    ], [
+        'total_pay.required' => 'Berapa jumlah uang yang dibayarkan?',
+    ]);
 
-        $newPrice = (int) preg_replace('/\D/', '', $request->total_price);
-        $newPay = (int) preg_replace('/\D/', '', $request->total_pay);
-        $newreturn = $newPay - $newPrice;
+    $newPrice = (int) preg_replace('/\D/', '', $request->total_price);
+    $newPay = (int) preg_replace('/\D/', '', $request->total_pay);
+    $newReturn = $newPay - $newPrice;
 
-        if ($request->member === 'Member') {
-            // Mengecek apakah customer sudah pernah melakukan pembelian sebelumnya
-            $existCustomer = customers::where('no_hp', $request->no_hp)->first();
-            // Akumulasi Point
-            $point = floor($newPrice / 100);
-            if ($existCustomer) {
-                // Jika customer sebelumnya sudah ada, maka update point
-                $existCustomer->update([
-                    'point' => $existCustomer->point + $point,
-                ]);
-                // Ambil ID customer
-                $customer_id = $existCustomer->id;
-            } else {
-                // Jika customer baru, maka create customer baru
-                $existCustomer = customers::create([
-                    'name' => "",
-                    'no_hp' => $request->no_hp,
-                    'point' => $point,
-                ]);
-                // Ambil ID customer baru
-                $customer_id = $existCustomer->id;
-            }
-            // Membuat data penjualan
-            $sales = saless::create([
-                'sale_date' => Carbon::now()->format('Y-m-d'),
-                'total_price' => $newPrice,
-                'total_pay' => $newPay,
-                'total_return' => $newreturn,
-                'customer_id' => $customer_id,
-                'user_id' => Auth::id(),
-                'point' => floor($newPrice / 100),
-                'total_point' => 0,
+    // Default customer_id = null
+    $customer_id = null;
+    $earnedPoint = 0;
+    $usedPoint = $request->has('check_poin') ? 1 : 0;
+
+    if ($request->member === 'Member') {
+        // Cek apakah customer sudah ada
+        $customer = customers::where('no_hp', $request->no_hp)->first();
+
+        if (!$customer) {
+            // Customer baru (pembelian pertama)
+            $customer = customers::create([
+                'name' => "",
+                'no_hp' => $request->no_hp,
+                'point' => 500, // Bonus awal
             ]);
-            $detailSalesData = [];
-
-            foreach ($request->shop as $shopItem) {
-                $item = explode(';', $shopItem);
-                $productId = (int) $item[0];
-                $amount = (int) $item[3];
-                $subtotal = (int) $item[4];
-
-                $detailSalesData[] = [
-                    'sale_id' => $sales->id,
-                    'product_id' => $productId,
-                    'amount' => $amount,
-                    'subtotal' => $subtotal,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-                // //menyebabkan duplikasi data
-                // detail_sales::insert($detailSalesData);
-
-                // Update stok produk di database
-                $product = products::find($productId);
-                if ($product) {
-                    $newStock = $product->stock - $amount;
-                    if ($newStock < 0) {
-                        return redirect()->back()->withErrors(['error' => 'Stok tidak mencukupi untuk produk ' . $product->name]);
-                    }
-                    $product->update(['stock' => $newStock]);
-                }
-            }
-            detail_sales::insert($detailSalesData);
-            return redirect()->route('sales.create.member', ['id' => saless::latest()->first()->id])
-                ->with('message', 'Silahkan daftar sebagai member');
+            $earnedPoint = 0; // Transaksi pertama tidak dapat 1%
         } else {
-            $sales = saless::create([
-                'sale_date' => Carbon::now()->format('Y-m-d'),
-                'total_price' => $newPrice,
-                'total_pay' => $newPay,
-                'total_return' => $newreturn,
-                'customer_id' => $request->customer_id,
-                'user_id' => Auth::id(),
-                'point' => 0,
-                'total_point' => 0,
+            // Transaksi ke-2 atau selanjutnya
+            $earnedPoint = floor($newPrice * 0.01);
+            $customer->update([
+                'point' => $customer->point + $earnedPoint,
             ]);
-
-            $detailSalesData = [];
-
-            foreach ($request->shop as $shopItem) {
-                $item = explode(';', $shopItem);
-                $productId = (int) $item[0];
-                $amount = (int) $item[3];
-                $subtotal = (int) $item[4];
-
-                $detailSalesData[] = [
-                    'sale_id' => $sales->id,
-                    'product_id' => $productId,
-                    'amount' => $amount,
-                    'subtotal' => $subtotal,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-
-
-
-                // Update stok produk di database
-                $product = products::find($productId);
-                if ($product) {
-                    $newStock = $product->stock - $amount;
-                    if ($newStock < 0) {
-                        return redirect()->back()->withErrors(['error' => 'Stok tidak mencukupi untuk produk ' . $product->name]);
-                    }
-                    $product->update(['stock' => $newStock]);
-                }
-            }
-            detail_sales::insert($detailSalesData);
-            return redirect()->route('sales.print.show', ['id' => $sales->id])->with('Silahkan Print');
         }
+
+        $customer_id = $customer->id;
+    } else {
+        $customer_id = $request->customer_id;
+        $customer = customers::find($customer_id);
+        $earnedPoint = floor($newPrice * 0.01);
+        if ($customer) {
+            $customer->update([
+                'point' => $customer->point + $earnedPoint,
+            ]);
+        }
+    }
+
+    // Simpan data penjualan
+    $sales = saless::create([
+        'sale_date' => now()->format('Y-m-d'),
+        'total_price' => $newPrice,
+        'total_pay' => $newPay,
+        'total_return' => $newReturn,
+        'customer_id' => $customer_id,
+        'user_id' => Auth::id(),
+        'point' => $earnedPoint,
+        'total_point' => 0,
+    ]);
+
+    $detailSalesData = [];
+
+    foreach ($request->shop as $shopItem) {
+        $item = explode(';', $shopItem);
+        $productId = (int) $item[0];
+        $amount = (int) $item[3];
+        $subtotal = (int) $item[4];
+
+        $detailSalesData[] = [
+            'sale_id' => $sales->id,
+            'product_id' => $productId,
+            'amount' => $amount,
+            'subtotal' => $subtotal,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        // Kurangi stok
+        $product = products::find($productId);
+        if ($product) {
+            $newStock = $product->stock - $amount;
+            if ($newStock < 0) {
+                return redirect()->back()->withErrors(['error' => 'Stok tidak mencukupi untuk produk ' . $product->name]);
+            }
+            $product->update(['stock' => $newStock]);
+        }
+    }
+
+    detail_sales::insert($detailSalesData);
+
+    // Redirect
+    if ($request->member === 'Member') {
+        return redirect()->route('sales.create.member', ['id' => $sales->id])
+            ->with('message', 'Silahkan daftar sebagai member');
+    } else {
+        return redirect()->route('sales.print.show', ['id' => $sales->id])
+            ->with('message', 'Silahkan cetak struk');
+    }
+
+
 
     }
 
@@ -209,7 +189,7 @@ class SalessController extends Controller
         $sale = saless::with('detail_sales.product')->findOrFail($id);
         // Menentukan apakah customer sudah pernah melakukan pembelian sebelumnya
         $notFirst = saless::where('customer_id', $sale->customer->id)->count() != 1 ? true : false;
-        return view('module.pembelian.view-member', compact('sale','notFirst'));
+        return view('sales.view_member', compact('sale','notFirst'));
     }
 
 

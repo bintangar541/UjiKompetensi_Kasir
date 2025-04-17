@@ -68,7 +68,7 @@
                                 <div class="row gutters">
                                     <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12">
                                         <div class="custom-actions-btns mb-5">
-                                            <a href="#" class="btn btn-primary">
+                                            <a href="{{ route('sales.download', $sale['id']) }}" class="btn btn-primary">
                                                 <i class="icon-download"></i> Unduh
                                             </a>
                                             <a href="{{ route('sales.index') }}" class="btn btn-secondary">
@@ -86,7 +86,8 @@
                                                     MEMBER SEJAK :
                                                     {{ \Carbon\Carbon::parse($sale['customer']['created_at'])->format('d F Y') }}
                                                     <br>
-                                                    MEMBER POIN : {{ $sale['customer'] ? $sale['customer']['poin'] : '0' }}
+                                                    MEMBER POIN : {{ optional($sale->customer)->point ?? '0' }}
+
                                                 </address>
                                             </div>
                                         @endif
@@ -118,7 +119,6 @@
                                                 </thead>
                                                 <tbody>
                                                     @foreach ($sale['detail_sales'] as $item)
-
                                                         <tr class="service">
                                                             <td class="tableitem">
                                                                 <p class="itemtext">{{ $item['product']['name'] }}</p>
@@ -150,27 +150,28 @@
                                     <div class="invoice-price-row">
                                         <div class="sub-price">
                                             <small>POIN DIGUNAKAN</small>
-                                            <span
-                                                class="text-inverse">{{ $sale['total_point'] }}</span>
+                                            <span class="text-inverse">{{ $sale['total_point'] }}</span>
                                         </div>
                                         <div class="sub-price">
                                             <small>KASIR</small>
                                             <span class="text-inverse">{{ Auth::user()->name }}</span>
                                         </div>
-                                            <div class="sub-price">
-                                                <small>KEMBALIAN</small>
-                                                <span class="text-inverse">Rp. {{ number_format($sale['total_return'], '0', ',', '.') }}</span>
-                                            </div>
+                                        <div class="sub-price">
+                                            <small>KEMBALIAN</small>
+                                            <span class="text-inverse">Rp.
+                                                {{ number_format($sale['total_return'], '0', ',', '.') }}</span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="invoice-price-right">
                                     <small>TOTAL</small>
                                     {{-- style="text-decoration: {{ $sale['point'] > 0 ? 'line-through' : 'none' }};" --}}
-                                    <span class="f-w-600">Rp. {{ number_format($sale['total_price'], '0', ',', '.') }}</span>
-                                    {{-- <br>
+                                    <span class="f-w-600">Rp.
+                                        {{ number_format($sale['total_price'], '0', ',', '.') }}</span>
+                                    <br>
+
                                     @if ($sale['point'] > 0)
-                                    <span class="f-w-600">Rp. {{ number_format($sale['total_price'], '0', ',', '.') }}</span>
-                                    @endif --}}
+                                    @endif
                                 </div>
                             </div>
                         </div>

@@ -4,7 +4,7 @@
 @section('content')
 <div class="container mt-5" style="max-width: 400px;">
     <div class="card">
-        <div class="card-body">
+        <div class="card-body ju">
             <h4 class="mb-3 text-center">Login</h4>
 
             @if($errors->has('login'))

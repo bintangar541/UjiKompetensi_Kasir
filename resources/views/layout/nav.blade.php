@@ -1,3 +1,4 @@
+@if (!Request::is('login'))
 <!-- Left Sidebar -->
 <aside class="left-sidebar" data-sidebarbg="skin6">
     <div class="scroll-sidebar">
@@ -15,24 +16,24 @@
                         <span class="hide-menu">Product</span>
                     </a>
                 </li>
-
-
                 <li class="sidebar-item {{ Request::is('pembelian') ? 'active' : '' }}">
                     <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{{ url('/sales') }}" aria-expanded="false">
                         <i class="mdi mdi-cart"></i>
                         <span class="hide-menu">Pembelian</span>
                     </a>
                 </li>
-                <li class="sidebar-item {{ Request::is('user') ? 'active' : '' }}">
-                    <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{{ url('/user') }}" aria-expanded="false">
-                        <i class="mdi mdi-account-network"></i>
-                        <span class="hide-menu">User</span>
-                    </a>
-                </li>
-
+                @if(auth()->user()->role === 'admin')
+<li class="sidebar-item {{ Request::is('user') ? 'active' : '' }}">
+    <a class="sidebar-link waves-effect waves-dark sidebar-link" href="{{ url('/user') }}" aria-expanded="false">
+        <i class="mdi mdi-account-network"></i>
+        <span class="hide-menu">User</span>
+    </a>
+</li>
+@endif
 
             </ul>
         </nav>
     </div>
 </aside>
 <!-- End Left Sidebar -->
+@endif

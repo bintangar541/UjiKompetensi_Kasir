@@ -39,14 +39,12 @@
         </div>
 
         <!-- role -->
-        <div class="mb-3">
-            <label for="role" class="form-label">Role</label>
-            <select name="role" id="role" class="form-select" >
-                <option selected disabled hidden>Pilih Role</option>
-                <option value="admin">Admin</option>
-                <option value="employee">employee</option>
-            </select>
-        </div>
+        <select name="role" id="role" class="form-select" >
+            <option selected disabled hidden>Pilih Role</option>
+            <option value="admin">Admin</option>
+            <option value="employee">employee</option>
+        </select>
+
 
 
         <!-- Tombol Submit -->

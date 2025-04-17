@@ -122,17 +122,17 @@ class ProductsController extends Controller
      */
     public function destroy($id)
     {
-        // Cek apakah produk memiliki relasi di detail_sales
         $isProductUsed = detail_sales::where('product_id', $id)->exists();
 
         if ($isProductUsed) {
-            return redirect()->route('product')->with('error', 'Produk tidak bisa dihapus karena sudah masuk transaksi.');
+            return redirect()->route('product.delete', ['id' => $id])->with('error', 'Produk tidak bisa dihapus karena sudah masuk transaksi.');
         }
 
-        // Jika tidak ada relasi, hapus produk
+
         products::where('id', $id)->delete();
 
         return redirect()->route('product.index')->with('success', 'Berhasil menghapus produk.');
     }
+
 
 }
