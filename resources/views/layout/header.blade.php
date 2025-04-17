@@ -53,19 +53,22 @@
                             </a>
                         </li>
                         <li>
-                            @if(Auth::check())
-                                <a class="dropdown-item" href=""
-                                    onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                    <i class="ti-user m-r-5 m-l-5"></i> Logout
-                                </a>
-                                <form id="logout-form" action="" method="POST" class="d-none">
-                                    @csrf
-                                </form>
-                            @else
-                                <a class="dropdown-item" href="">
-                                    <i class="ti-user m-r-5 m-l-5"></i> Login
-                                </a>
-                            @endif
+                            <li>
+                                @if(Auth::check())
+                                    <a class="dropdown-item" href="{{ route('logout') }}"
+                                        onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                                        <i class="ti-user m-r-5 m-l-5"></i> Logout
+                                    </a>
+                                    <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
+                                        @csrf
+                                    </form>
+                                @else
+                                    <a class="dropdown-item" href="{{ route('login') }}">
+                                        <i class="ti-user m-r-5 m-l-5"></i> Login
+                                    </a>
+                                @endif
+                            </li>
+
                         </li>
                     </ul>
                 </li>
