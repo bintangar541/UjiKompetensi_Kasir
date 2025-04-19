@@ -21,7 +21,6 @@ Route::get('/dashboard', function () {
     $labelspieChart = [];
     $salesDatapieChart = [];
 
-    // Tambahkan default value agar tidak error saat user admin
     $memberCount = 0;
     $nonMemberCount = 0;
 
@@ -30,10 +29,8 @@ Route::get('/dashboard', function () {
             ->whereDate('created_at', Carbon::today())
             ->count();
 
-        // Hitung jumlah member terdaftar
         $memberCount = DB::table('customers')->count();
 
-        // Hitung jumlah non-member (jumlah penjualan tanpa customer_id)
         $nonMemberCount = DB::table('saless')
             ->whereNull('customer_id')
             ->count();
@@ -66,7 +63,7 @@ Route::get('/dashboard', function () {
             $salesData[] = $count;
         }
 
-        // PIE CHART - Penjualan per Produk
+        // PIE CHART - Penjualan per Produk (dibulatkan)
         $productSales = DB::table('detail_sales')
             ->join('products', 'detail_sales.product_id', '=', 'products.id')
             ->select('products.name', DB::raw('count(detail_sales.id) as total'))
@@ -74,8 +71,17 @@ Route::get('/dashboard', function () {
             ->orderByDesc('total')
             ->get();
 
-        $labelspieChart = $productSales->pluck('name')->toArray();
-        $salesDatapieChart = $productSales->pluck('total')->toArray();
+        $totalProductSales = $productSales->sum('total');
+
+        $labelspieChart = [];
+        $salesDatapieChart = [];
+
+        foreach ($productSales as $item) {
+            $labelspieChart[] = $item->name;
+            $salesDatapieChart[] = $totalProductSales > 0 
+                ? round(($item->total / $totalProductSales) * 100)
+                : 0;
+        }
     }
 
     return view('dashboard.index', compact(
@@ -148,10 +154,9 @@ Route::prefix('product')->name('product.')->group(function () {
         // Semua login user bisa akses
         Route::get('/print/{id}', [DetailSalesController::class, 'show'])->name('print.show');
         Route::get('/exportexcel', [DetailSalesController::class, 'exportexcel'])->name('exportexcel');
-        Route::get('/download/{id}', [DetailSalesController::class, 'downloadPDF'])
-        ->middleware('role:admin,employee,customer') // atau role:*
-        ->name('downloadpdf');
-    
+        Route::get('/sales/download/{id}', [DetailSalesController::class, 'downloadPDF'])->name('downloadpdf');
+
+
         Route::get('/sales/export', [DetailSalesController::class, 'export'])->name('export');
     });
     

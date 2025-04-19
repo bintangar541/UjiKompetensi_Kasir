@@ -54,6 +54,7 @@
                                                 <a href="{{ route('sales.downloadpdf', $sale->id) }}" class="btn btn-info">
                                                     <i class="mdi mdi-download"></i>
                                                 </a>
+                                                
                                             </div>
                                         </td>
                                     </tr>
@@ -72,7 +73,12 @@
                                                             <small>
                                                                 Member Status : {{ $sale['customer'] ? 'Member' : 'Bukan Member' }}<br>
                                                                 No. HP : {{ $sale['customer'] ? $sale['customer']['no_hp'] : '-' }}<br>
-                                                                Poin Member : {{ $sale['customer'] ? $sale['customer']['point'] : '-' }}
+                                                                Poin MEMBER :
+                                                                @if ($sale->point > 0)
+                                                                    {{ $sale->point }} 
+                                                                @else
+                                                                    {{ 0 }}
+                                                                @endif
                                                             </small>
                                                         </div>
                                                         <div class="col-6">

@@ -18,8 +18,11 @@ class customers extends Model
     protected $fillable = [
         'name',
         'no_hp',
-        'point',
+        'point',           // (boleh dipakai untuk histori poin total jika ingin)
+        'usable_point',    // poin yang bisa dipakai saat ini
+        'pending_point',   // poin yang baru didapat, baru bisa dipakai di transaksi berikutnya
     ];
+
     public function saless()
     {
         return $this->hasMany(saless::class);

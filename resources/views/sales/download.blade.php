@@ -150,10 +150,10 @@
                             <td></td>
                             <td></td>
                             <td>
-                                <h2>Total Bayar</h2>
+                                <h2>Total Harga</h2>
                             </td>
                             <td>
-                                <h2>Rp. {{ number_format($sale['total_pay'], '0', ',', '.') }}</h2>
+                                <h2>Rp. {{ number_format($sale['total_price'], '0', ',', '.') }}</h2>
                             </td>
                         </tr>
 
@@ -161,7 +161,7 @@
                             <td></td>
                             <td></td>
                             <td>
-                                <h2>Total Harga</h2>
+                                <h2>Total Bayar</h2>
                             </td>
                             <td>
                                 <h2>Rp. {{ number_format($sale['total_price'], '0', ',', '.') }}</h2>
@@ -197,7 +197,7 @@
                 </div>
                 <div id="legalcopy">
                     <center>
-                        <p id="current-time">{{ $currentTime }} | {{ $sale['user']['name'] }}</p>
+                        <p id="current-time">{{ \Carbon\Carbon::now()->format('d-m-Y H:i:s') }} | {{ $sale['user']['name'] }}</p>
                         <p class="legal"><strong>Terima kasih atas pembelian Anda!</strong></p>
                     </center>
                     
