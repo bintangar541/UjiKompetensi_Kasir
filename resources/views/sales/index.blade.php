@@ -51,7 +51,9 @@
                                         <td>
                                             <div class="d-flex justify-content-around">
                                                 <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#lihat-{{$sale->id}}"><i class="mdi mdi-eye"></i></button>
-                                                <a href="" class="btn btn-info"><i class="mdi mdi-download"></i></a>
+                                                <a href="{{ route('sales.downloadpdf', $sale->id) }}" class="btn btn-info">
+                                                    <i class="mdi mdi-download"></i>
+                                                </a>
                                             </div>
                                         </td>
                                     </tr>

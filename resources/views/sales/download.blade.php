@@ -102,7 +102,12 @@
                         Bergabung Sejak :
                         {{ $sale['customer'] ? \Carbon\Carbon::parse($sale['customer']['created_at'])->format('d F Y') : '-' }}
                         <br>
-                        MEMBER POIN : {{ optional($sale->customer)->point ?? '0' }}
+                        MEMBER POIN :
+                                                    @if ($sale->point > 0)
+                                                        {{ $sale->point }} 
+                                                    @else
+                                                        {{ 0 }}
+                                                    @endif
 
                     </small>
                 </div>
@@ -145,7 +150,7 @@
                             <td></td>
                             <td></td>
                             <td>
-                                <h2>Total Harga</h2>
+                                <h2>Total Bayar</h2>
                             </td>
                             <td>
                                 <h2>Rp. {{ number_format($sale['total_pay'], '0', ',', '.') }}</h2>
@@ -156,7 +161,7 @@
                             <td></td>
                             <td></td>
                             <td>
-                                <h2>Total Bayar</h2>
+                                <h2>Total Harga</h2>
                             </td>
                             <td>
                                 <h2>Rp. {{ number_format($sale['total_price'], '0', ',', '.') }}</h2>
@@ -164,14 +169,20 @@
                         </tr>
                         <tr class="tabletitle">
                             <td>Poin Digunakan</td>
-                            <td>{{ $sale['point'] }}</td>
+                            <td>{{ $sale['total_point'] }}</td>
+                            @php
+                                $hargaSetelahPoin = $sale['total_price'] - $sale['total_point'];
+                            @endphp
+
                             <td>
                                 <h2>Harga Setelah Poin</h2>
                             </td>
                             <td>
-                                <h2>Rp. {{ number_format($sale['total_point'], '0', ',', '.') }}</h2>
+                                <h2>Rp. {{ number_format($hargaSetelahPoin, 0, ',', '.') }}</h2>
                             </td>
+
                         </tr>
+
                         <tr class="tabletitle">
                             <td></td>
                             <td></td>
@@ -186,9 +197,23 @@
                 </div>
                 <div id="legalcopy">
                     <center>
-                        <p>{{ $sale['created_at'] }} | {{ $sale['user']['name'] }}</p>
+                        <p id="current-time">{{ $currentTime }} | {{ $sale['user']['name'] }}</p>
                         <p class="legal"><strong>Terima kasih atas pembelian Anda!</strong></p>
                     </center>
+                    
+                    <script>
+                        // Fungsi untuk mengupdate waktu secara real-time
+                        function updateTime() {
+                            var currentTime = new Date();
+                            var formattedTime = currentTime.toLocaleString();  // Format waktu default sesuai dengan setting lokal
+                            document.getElementById('current-time').innerText = formattedTime + " | {{ $sale['user']['name'] }}";
+                        }
+                    
+                        // Update waktu setiap detik
+                        setInterval(updateTime, 1000);
+                    </script>
+                    
+                    
                 </div>
             </div>
         </div>

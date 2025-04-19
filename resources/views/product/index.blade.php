@@ -39,6 +39,12 @@
                     @endif
                 </div>
 
+                @if(Auth::user()->role === 'admin')
+<a href="{{ route('product.export') }}" class="btn btn-success mb-4">
+    <i class="mdi mdi-file-excel"></i> Export Excel
+</a>
+@endif
+
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead>
@@ -61,6 +67,7 @@
                                 <td>{{ $product->name }}</td>
                                 <td>Rp {{ number_format($product->price, 0, ',', '.') }}</td>
                                 <td>{{ $product->stock }}</td>
+                                
 
                                 @if(Auth::user()->role === 'admin')
                                 <td>

@@ -21,6 +21,10 @@ Route::get('/dashboard', function () {
     $labelspieChart = [];
     $salesDatapieChart = [];
 
+    // Tambahkan default value agar tidak error saat user admin
+    $memberCount = 0;
+    $nonMemberCount = 0;
+
     if ($user->role === 'employee') {
         $todaySalesCount = DB::table('saless')
             ->whereDate('created_at', Carbon::today())
@@ -31,24 +35,15 @@ Route::get('/dashboard', function () {
 
         // Hitung jumlah non-member (jumlah penjualan tanpa customer_id)
         $nonMemberCount = DB::table('saless')
-    ->whereNull('customer_id')
-    ->count();
-
-
-        // Atau kalau no_hp tidak disimpan, hitung berdasarkan transaksi
-        $nonMemberCount = DB::table('saless')
             ->whereNull('customer_id')
             ->count();
     }
-
-
 
     if ($user->role === 'admin') {
         // LINE CHART - Penjualan per Hari di Bulan Ini
         $startOfMonth = Carbon::now()->startOfMonth();
         $endOfMonth = Carbon::now();
 
-        // Ambil semua tanggal dalam bulan ini
         $allDates = [];
         $currentDate = $startOfMonth->copy();
         while ($currentDate <= $endOfMonth) {
@@ -56,7 +51,6 @@ Route::get('/dashboard', function () {
             $currentDate->addDay();
         }
 
-        // Ambil data penjualan per hari
         $sales = DB::table('saless')
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as total'))
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
@@ -67,9 +61,6 @@ Route::get('/dashboard', function () {
             $allDates[$sale->date] = $sale->total;
         }
 
-        // Buat labels dan data untuk line chart
-        $labels = [];
-        $salesData = [];
         foreach ($allDates as $date => $count) {
             $labels[] = Carbon::parse($date)->format('d M');
             $salesData[] = $count;
@@ -77,14 +68,14 @@ Route::get('/dashboard', function () {
 
         // PIE CHART - Penjualan per Produk
         $productSales = DB::table('detail_sales')
-        ->join('products', 'detail_sales.product_id', '=', 'products.id')
-        ->select('products.name', DB::raw('count(detail_sales.id) as total'))
-        ->groupBy('products.name')
-        ->orderByDesc('total')
-        ->get();
+            ->join('products', 'detail_sales.product_id', '=', 'products.id')
+            ->select('products.name', DB::raw('count(detail_sales.id) as total'))
+            ->groupBy('products.name')
+            ->orderByDesc('total')
+            ->get();
 
-    $labelspieChart = $productSales->pluck('name')->toArray();
-    $salesDatapieChart = $productSales->pluck('total')->toArray();
+        $labelspieChart = $productSales->pluck('name')->toArray();
+        $salesDatapieChart = $productSales->pluck('total')->toArray();
     }
 
     return view('dashboard.index', compact(
@@ -96,9 +87,8 @@ Route::get('/dashboard', function () {
         'memberCount',
         'nonMemberCount'
     ));
-
-
 })->middleware('auth');
+
 
 
 Route::get('/login', [UserController::class, 'login'])->name('login');
@@ -115,6 +105,8 @@ Route::prefix('product')->name('product.')->group(function () {
     Route::put('/edit/{id}', [ProductsController::class, 'update'])->name('update');
     Route::delete('/{id}', [ProductsController::class, 'destroy'])->name('delete');
     Route::put('/edit-stock/{id}', [ProductsController::class, 'updateStock'])->name('stock');
+    Route::get('/products/export', [ProductsController::class, 'export'])->name('export');
+
 });
 
 /**
@@ -128,6 +120,7 @@ Route::prefix('product')->name('product.')->group(function () {
     Route::get('/edit/{id}', [UserController::class, 'edit'])->name('edit');
     Route::put('/update/{id}', [UserController::class, 'update'])->name('update');
     Route::delete('/{id}', [UserController::class, 'destroy'])->name('delete');
+    Route::get('/export', [UserController::class, 'export'])->name('export');
 });
 
 
@@ -138,16 +131,29 @@ Route::prefix('product')->name('product.')->group(function () {
 
 
     Route::prefix('/sales')->name('sales.')->group(function () {
-    Route::get('/', [SalessController::class, 'index'])->name('index');
-    Route::get('/create',[SalessController::class, 'create'])->name('create');
-    Route::post('/create/post',[SalessController::class, 'store'])->name('store');
-    Route::post('/create/post/createsales',[SalessController::class, 'createsales'])->name('createsales');
-    Route::get('/create/post',[SalessController::class, 'post'])->name('post');
-    Route::get('/print/{id}',[DetailSalesController::class, 'show'])->name('print.show');
-    Route::get('/create/member/{id}', [SalessController::class, 'createmember'])->name('create.member');
-    Route::get('/exportexcel', [DetailSalesController::class, 'exportexcel'])->name('exportexcel');
-    Route::get('/download/{id}', [DetailSalesController::class, 'downloadPDF'])->name('download');
-    Route::get('/sales/export', [DetailSalesController::class, 'export'])->name('export');
-
-});
+        // HANYA ADMIN atau EMPLOYEE yang boleh mengakses INDEX
+        Route::get('/', [SalessController::class, 'index'])
+            ->middleware('role:admin,employee') // ⬅️ Ini untuk admin dan employee
+            ->name('index');
+        
+        // HANYA EMPLOYEE yang boleh akses route CREATE dan sejenisnya
+        Route::middleware(['role:employee'])->group(function () {
+            Route::get('/create', [SalessController::class, 'create'])->name('create');
+            Route::post('/create/post', [SalessController::class, 'store'])->name('store');
+            Route::post('/create/post/createsales', [SalessController::class, 'createsales'])->name('createsales');
+            Route::get('/create/post', [SalessController::class, 'post'])->name('post');
+            Route::get('/create/member/{id}', [SalessController::class, 'createmember'])->name('create.member');
+        });
+        
+        // Semua login user bisa akses
+        Route::get('/print/{id}', [DetailSalesController::class, 'show'])->name('print.show');
+        Route::get('/exportexcel', [DetailSalesController::class, 'exportexcel'])->name('exportexcel');
+        Route::get('/download/{id}', [DetailSalesController::class, 'downloadPDF'])
+        ->middleware('role:admin,employee,customer') // atau role:*
+        ->name('downloadpdf');
+    
+        Route::get('/sales/export', [DetailSalesController::class, 'export'])->name('export');
+    });
+    
+    
 

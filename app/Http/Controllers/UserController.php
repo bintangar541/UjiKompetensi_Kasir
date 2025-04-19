@@ -8,6 +8,8 @@ use GuzzleHttp\Middleware;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Carbon\Carbon;
+use App\Exports\UsersExport;
+use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
@@ -128,6 +130,12 @@ class UserController extends Controller
     {
         User::where('id', $id)->delete();
         return redirect()->route('user.index')->with('success', 'Berhasil Hapus User');
+    }
+
+    public function export()
+    {
+        // Menambahkan export Excel dengan nama file users.xlsx
+        return Excel::download(new UsersExport, 'users.xlsx');
     }
 
 

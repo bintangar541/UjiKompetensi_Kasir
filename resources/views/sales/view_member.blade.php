@@ -3,6 +3,14 @@
 
 @section('content')
     <div class="container-fluid">
+        {{-- Notifikasi penggunaan dan perolehan poin --}}
+        @if(session('point_used') && session('point_used') > 0)
+            <div class="alert alert-info">
+                <strong>Info:</strong> Anda menggunakan {{ session('point_used') }} poin pada transaksi ini.
+            </div>
+        @endif
+
+
         <div class="row">
             <div class="col-12">
                 <div class="card">
@@ -19,18 +27,10 @@
                                     <div class="table table-bordered">
                                         <table>
                                             <tr class="tabletitle">
-                                                <td class="item">
-                                                    Nama Produk
-                                                </td>
-                                                <td class="item">
-                                                    QTy
-                                                </td>
-                                                <td class="item">
-                                                    Harga
-                                                </td>
-                                                <td class="item">
-                                                    Sub Total
-                                                </td>
+                                                <td class="item">Nama Produk</td>
+                                                <td class="item">QTy</td>
+                                                <td class="item">Harga</td>
+                                                <td class="item">Sub Total</td>
                                             </tr>
                                             @foreach ($sale['detail_sales'] as $item)
                                                 <tr class="service">
@@ -41,31 +41,24 @@
                                                         <p class="itemtext">{{ $item['amount'] }}</p>
                                                     </td>
                                                     <td class="tableitem">
-                                                        <p class="itemtext">Rp.
-                                                            {{ number_format($item['product']['price'], '0', ',', '.') }}
-                                                        </p>
+                                                        <p class="itemtext">Rp. {{ number_format($item['product']['price'], '0', ',', '.') }}</p>
+                                                    </td>
+                                                    <td class="tableitem">
+                                                        <p class="itemtext">Rp. {{ number_format($item['amount'] * $item['product']['price'], '0', ',', '.') }}</p>
                                                     </td>
                                                 </tr>
                                             @endforeach
                                             <tr class="tabletitle">
                                                 <td></td>
                                                 <td></td>
-                                                <td>
-                                                    <h4>Total Harga</h4>
-                                                </td>
-                                                <td>
-                                                    <h4>Rp. {{ number_format($sale['total_price'], '0', ',', '.') }}</h4>
-                                                </td>
+                                                <td><h4>Total Harga</h4></td>
+                                                <td><h4>Rp. {{ number_format($sale['total_price'], '0', ',', '.') }}</h4></td>
                                             </tr>
                                             <tr class="tabletitle">
                                                 <td></td>
                                                 <td></td>
-                                                <td>
-                                                    <h4>Total Bayar</h4>
-                                                </td>
-                                                <td>
-                                                    <h4>Rp. {{ number_format($sale['total_pay'], '0', ',', '.') }}</h4>
-                                                </td>
+                                                <td><h4>Total Bayar</h4></td>
+                                                <td><h4>Rp. {{ number_format($sale['total_pay'], '0', ',', '.') }}</h4></td>
                                             </tr>
                                         </table>
                                     </div>
@@ -80,9 +73,9 @@
                                                 required value="{{ $sale['customer']['name'] }}">
                                         </div>
                                         <div class="form-group">
-                                            <label for="poin" class="form-label">Poin</label>
+                                            <label for="poin" class="form-label">Poin yang digunakan</label>
                                             <input type="text" name="point" id="poin"
-                                                value="{{ $sale['customer']['point'] }}" disabled class="form-control">
+                                                value="{{ session('point_used') ?? 0 }}" disabled class="form-control">
                                         </div>
                                         <div class="form-check ms-4">
                                             <input class="form-check-input" type="checkbox" value="Ya" id="check2"
@@ -90,9 +83,11 @@
                                             <label class="form-check-label" for="check2">
                                                 Gunakan poin
                                             </label>
-                                            <small
-                                                class="text-danger">{{ $notFirst ? '' : 'Poin tidak dapat digunakan pada pembelanjaan pertama.' }}</small>
+                                            <small class="text-danger">
+                                                {{ $notFirst ? '' : 'Poin tidak dapat digunakan pada pembelanjaan pertama.' }}
+                                            </small>
                                         </div>
+                                        
                                     </div>
                                     <div class="row text-end">
                                         <div class="col-md-12">

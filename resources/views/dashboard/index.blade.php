@@ -34,33 +34,32 @@
             <b>{{ $nonMemberCount }}</b>
         </div>
     </li>
-
     @endif
 
     @if(Auth::user()->role === 'admin')
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-md-flex align-items-center">
-                        <div>
-                            <h4 class="card-title">Selamat Datang {{ Auth::user()->name }}</h4>
-                        </div>
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-md-flex align-items-center">
+                    <div>
+                        <h4 class="card-title">Selamat Datang {{ Auth::user()->name }}</h4>
                     </div>
-                    <canvas id="salesChart"></canvas>
                 </div>
+                <canvas id="salesChart"></canvas>
             </div>
         </div>
+    </div>
 
-        <div class="col-lg-4">
-            <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title">Persentase Penjualan Produk</h4>
-                    <div class="chart-container">
-                        <canvas id="salesPieChart"></canvas>
-                    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title">Persentase Penjualan Produk</h4>
+                <div class="chart-container">
+                    <canvas id="salesPieChart"></canvas>
                 </div>
             </div>
         </div>
+    </div>
     @endif
 </div>
 
@@ -110,11 +109,11 @@
             });
         }
 
-        // Line Chart
-        const lineCtx = document.getElementById('salesChart');
-        if(lineCtx) {
-            new Chart(lineCtx, {
-                type: 'line',
+        // Bar Chart
+        const barCtx = document.getElementById('salesChart');
+        if(barCtx) {
+            new Chart(barCtx, {
+                type: 'bar',
                 data: {
                     labels: @json($labels),
                     datasets: [{
@@ -122,9 +121,7 @@
                         data: @json($salesData),
                         backgroundColor: 'rgba(54, 162, 235, 0.6)',
                         borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
+                        borderWidth: 1
                     }]
                 },
                 options: {

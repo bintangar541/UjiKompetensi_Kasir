@@ -33,10 +33,18 @@
                     </script>
                     @endif
                     <h4 class="card-title mb-0">Daftar List</h4>
+                </div>
+
+                <!-- Tombol diatur dalam baris terpisah dengan Flexbox -->
+                <div class="d-flex justify-content-start mb-4">
                     <a href="{{route('user.create')}}">
-                        <button type="button" class="btn btn-info mb-4">Tambah User</button>
+                        <button type="button" class="btn btn-info mr-2">Tambah User</button>
+                    </a>
+                    <a href="{{ route('user.export') }}">
+                        <button type="button" class="btn btn-success">Export Excel</button>
                     </a>
                 </div>
+
                 <div class="table-responsive">
                     <table class="table table-bordered">
                         <thead>
@@ -56,13 +64,13 @@
                                 <td>{{ $user->name }}</td>
                                 <td>{{ $user->role }}</td>
                                 <td>
-                                        <a href="{{ route('user.edit', $user->id) }}" class="btn btn-warning">Edit</a>
+                                    <a href="{{ route('user.edit', $user->id) }}" class="btn btn-warning">Edit</a>
 
-                                        <form action="{{ route('user.delete', $user->id) }}" method="POST" class="d-inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger" onclick="return confirm('Yakin ingin menghapus User ini?')">Hapus</button>
-                                        </form>
+                                    <form action="{{ route('user.delete', $user->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger" onclick="return confirm('Yakin ingin menghapus User ini?')">Hapus</button>
+                                    </form>
                                 </td>
                             </tr>
                             @empty
@@ -77,6 +85,7 @@
         </div>
     </div>
 </div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.getElementById("todo-form").addEventListener("submit", function (event) {
